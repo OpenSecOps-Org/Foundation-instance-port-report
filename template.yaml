@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: python3.9
+    Handler: app.lambda_handler
+    Timeout: 900
+
+Description: >
+  instance-port-report
+
+  Creates a report of open instance ports across the whole organisation.
+
+Parameters:
+  CrossAccountRole:
+    Type: String
+    Description:
+      The role to assume in member accounts. Must be SCP-exempt and give
+      full admin rights. Use AWSControlTowerExecution under CT, OrganizationAccountAccessRole
+      under AWS Organizations. Make sure this role exists also in the Organization account
+      and can be assumed only from there. Define it manually if necessary.
+    AllowedValues: ['OrganizationAccountAccessRole', 'AWSControlTowerExecution']
+    Default: 'AWSControlTowerExecution'
+
+  Regions:
+    Type: String
+    Description: Comma-separated list of regions to check
+    Default: 'eu-north-1,us-east-1'
+
+  EmailRecipients:
+    Type: String
+    Description: Comma-separated list of email report recipients
+    Default: 'soc@example.com'
+
+  EmailSignee:
+    Type: String
+    Description: For the signature line in emails
+    Default: 'Acme Inc SOAR'
+
+  EmailSender:
+    Type: String
+    Description: The sender to use for sending emails
+    Default: 'no-reply@example.com'
+
+  EmailCC:
+    Type: String
+    Description: CC of all mail to these comma-separated email addresses
+    Default: ''
+
+  EmailBCC:
+    Type: String
+    Description: BCC of all mail to these comma-separated email addresses
+    Default: ''
+
+  EmailReturnPath:
+    Type: String
+    Description: The email return path
+    Default: 'soc@example.com'
+
+Resources:
+  InstancePortReport:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/instance-port-report.asl.yaml
+      DefinitionSubstitutions:
+        GetOrganizationAccountListFunctionArn: !GetAtt GetOrganizationAccountListFunction.Arn
+        SetRegionsFunctionArn: !GetAtt SetRegionsFunction.Arn
+        ScanRegionalInstancesFunctionArn: !GetAtt ScanRegionalInstancesFunction.Arn
+        FormatEmailFunctionArn: !GetAtt FormatEmailFunction.Arn
+        SendEmailFunctionArn: !GetAtt SendEmailFunction.Arn
+        EmailRecipients: !Ref EmailRecipients
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Description: Schedule to run at 6 AM Mondays
+            Enabled: True
+            Schedule: 'cron(0 6 ? * MON *)'
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GetOrganizationAccountListFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SetRegionsFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ScanRegionalInstancesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FormatEmailFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SendEmailFunction
+
+  GetOrganizationAccountListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/get_organization_account_list/
+      Policies:
+        - Statement:
+            - Sid: OrganizationPermissions
+              Effect: Allow
+              Action:
+                - organizations:ListAccounts
+              Resource: '*'
+
+  SetRegionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/set_regions/
+      Environment:
+        Variables:
+          REGIONS: !Ref Regions
+
+  ScanRegionalInstancesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/scan_regional_instances/
+      Policies:
+        - Statement:
+            - Sid: AssumeTheRole
+              Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource: !Sub 'arn:aws:iam::*:role/${CrossAccountRole}'
+            - Sid: EC2Permissions
+              Effect: Allow
+              Action:
+                - ec2:DescribeInstances
+                - ec2:DescribeSecurityGroups
+              Resource: '*'
+      Environment:
+        Variables:
+          CROSS_ACCOUNT_ROLE: !Ref CrossAccountRole
+
+  FormatEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/format_email/
+      Environment:
+        Variables:
+          EMAIL_SIGNEE: !Ref EmailSignee
+
+  SendEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/send_email/
+      Policies:
+        - Statement:
+            - Sid: SESPermissions
+              Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource: '*'
+      Environment:
+        Variables:
+          SEND_EMAIL: 'Yes'
+          EMAIL_SENDER: !Ref EmailSender
+          EMAIL_CC: !Ref EmailCC
+          EMAIL_BCC: !Ref EmailBCC
+          EMAIL_RETURN_PATH: !Ref EmailReturnPath

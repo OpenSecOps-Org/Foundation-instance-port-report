@@ -1,0 +1,10 @@
+# Deployment configuration
+
+repo-name    = "Foundation-instance-port-report"
+part-of      = 'foundation'
+
+
+[SAM]
+stack-name   = "INFRA-instance-port-report"
+profile      = "admin-account"
+regions      = '{main-region}'

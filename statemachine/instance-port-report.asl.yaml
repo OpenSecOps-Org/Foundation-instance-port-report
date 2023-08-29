@@ -1,0 +1,79 @@
+Comment: A state machine to create a report of exposed IPs for instances.
+StartAt: Get Organization Active Account List
+States:
+  Get Organization Active Account List:
+    Type: Task
+    Resource: '${GetOrganizationAccountListFunctionArn}'
+    Retry:
+      - ErrorEquals:
+          - States.TaskFailed
+        IntervalSeconds: 5
+        MaxAttempts: 5
+        BackoffRate: 1.5
+    ResultPath: $.Accounts
+    Next: Set Regions
+  Set Regions:
+    Type: Task
+    Resource: '${SetRegionsFunctionArn}'
+    Retry:
+      - ErrorEquals:
+          - States.TaskFailed
+        IntervalSeconds: 5
+        MaxAttempts: 5
+        BackoffRate: 1.5
+    ResultPath: $.Regions
+    Next: In each member account
+  In each member account:
+    Type: Map
+    ItemsPath: $.Accounts
+    Parameters:
+      Account.$: $$.Map.Item.Value
+      Regions.$: $.Regions
+    ResultPath: $.Data
+    MaxConcurrency: 1
+    Iterator:
+      StartAt: Scan in Region
+      States:
+        Scan in Region:
+          Type: Map
+          ItemsPath: $.Regions
+          Parameters:
+            Account.$: $.Account
+            Region.$: $$.Map.Item.Value
+          MaxConcurrency: 1
+          Iterator:
+            StartAt: Scan Instances in Region
+            States:
+              Scan Instances in Region:
+                Type: Task
+                Resource: '${ScanRegionalInstancesFunctionArn}'
+                Retry:
+                  - ErrorEquals:
+                      - States.TaskFailed
+                    IntervalSeconds: 5
+                    MaxAttempts: 5
+                    BackoffRate: 1.5
+                End: true
+          End: true
+    Next: Format
+  Format:
+    Type: Task
+    Resource: '${FormatEmailFunctionArn}'
+    Retry:
+      - ErrorEquals:
+          - States.TaskFailed
+        IntervalSeconds: 5
+        MaxAttempts: 5
+        BackoffRate: 1.5
+    ResultPath: $.Data
+    Next: Send Email
+  Send Email:
+    Type: Task
+    Resource: '${SendEmailFunctionArn}'
+    Parameters:
+      Recipient: '${EmailRecipients}'
+      Subject.$: $.Data.Subject
+      Body.$: $.Data.Body
+      Html: true
+    ResultPath: null
+    End: true
