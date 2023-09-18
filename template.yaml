@@ -4,7 +4,7 @@ Transform: AWS::Serverless-2016-10-31
 
 Globals:
   Function:
-    Runtime: python3.9
+    Runtime: python3.11
     Handler: app.lambda_handler
     Timeout: 900
 
@@ -27,7 +27,7 @@ Parameters:
   Regions:
     Type: String
     Description: Comma-separated list of regions to check
-    Default: 'eu-north-1,us-east-1'
+    Default: 'eu-xxxxx-1,us-yyyy-1'
 
   EmailRecipients:
     Type: String
@@ -37,7 +37,7 @@ Parameters:
   EmailSignee:
     Type: String
     Description: For the signature line in emails
-    Default: 'Acme Inc SOAR'
+    Default: 'Delegat SOAR'
 
   EmailSender:
     Type: String
