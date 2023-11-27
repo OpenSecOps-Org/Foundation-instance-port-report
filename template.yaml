@@ -37,7 +37,7 @@ Parameters:
   EmailSignee:
     Type: String
     Description: For the signature line in emails
-    Default: 'Delegat SOAR'
+    Default: 'Delegat Foundation'
 
   EmailSender:
     Type: String

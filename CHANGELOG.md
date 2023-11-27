@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.5
+    * Sender is now Delegat Foundation.
+
 ## v1.0.4
     * Corrected incomplete parametrisation.
 
