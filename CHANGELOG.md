@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.6
+    * Added SOAR monitoring of the state machine.
+
 ## v1.0.5
     * Sender is now Delegat Foundation.
 
