@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.7
+    * Upgraded to Python 3.12.
+    * Added `.python-version` file for pyenv.
+
 ## v1.0.6
     * Added SOAR monitoring of the state machine.
 
