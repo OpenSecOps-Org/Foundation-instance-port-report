@@ -1,6 +1,6 @@
 # Instance Port Report
 
-[![Daily CVE scan](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/daily-scan.yml/badge.svg)](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/daily-scan.yml) [![OpenSSF Scorecard](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/scorecard.yml)
+[![Daily CVE scan](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/daily-scan.yml/badge.svg)](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/daily-scan.yml) [![OpenSSF Scorecard](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenSecOps-Org/Foundation-instance-port-report/actions/workflows/scorecard.yml) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12827/badge)](https://www.bestpractices.dev/projects/12827)
 
 ## Deployment
 
