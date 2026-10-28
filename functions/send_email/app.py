@@ -1,5 +1,6 @@
 import os
 import boto3
+from aws_errors import transient_aws_errors
 
 SEND_EMAIL = os.environ['SEND_EMAIL']
 EMAIL_SENDER = os.environ['EMAIL_SENDER']
@@ -10,6 +11,7 @@ EMAIL_RETURN_PATH = os.environ['EMAIL_RETURN_PATH']
 client = boto3.client('ses')
 
 
+@transient_aws_errors
 def lambda_handler(data, _context):
 
     print(data)

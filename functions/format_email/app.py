@@ -1,8 +1,10 @@
 import os
+from aws_errors import transient_aws_errors
 
 EMAIL_SIGNEE = os.environ['EMAIL_SIGNEE']
 
 
+@transient_aws_errors
 def lambda_handler(blob, _context):
     data = blob['Data']
     toc = {'red': [], 'other': []}
